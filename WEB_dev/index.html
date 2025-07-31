@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAB 1</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #e6dcdc;
+        }
+        form {
+            background: #fff;
+            max-width: 450px;
+            margin: 40px auto;
+            padding: 30px 40px 20px 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        table {
+            width: 100%;
+        }
+        td {
+            padding: 20px 5px;
+            vertical-align: top;
+            /* border: #222 solid ; */
+        }
+        label {
+            font-weight: 400;
+            color: #222;
+        }
+        input[type="text"],
+        input[type="email"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            box-sizing: border-box;
+            margin-top: -15px;
+        }
+        textarea {
+            min-height: 60px;
+        }
+        input[type="radio"] {
+            margin: 0 5px 0 15px;
+        }
+        input[type="radio"]:first-of-type {
+            margin-left: 0;
+        }
+        button {
+            background: #067df4;
+            color: #fff;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 4px;
+            font-size: 1em;
+            margin: 0 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 700;
+        }
+        button[type="reset"] {
+            background: #9a2424;
+        }
+        button:hover {
+            background: #1565c0;
+        }
+        button[type="reset"]:hover {
+            background: #555;
+        }
+        /* for star */
+        .checked {
+            color: orange;
+        }
+        .fa-star {
+            cursor: pointer;
+            font-size: 20px;
+            margin: 0 2px;
+            transition: color 0.2s;
+        }
+        .fa-star:hover {
+            color: #ffa500;
+        }
+        
+        /* Success/Error message styles */
+        .message {
+            padding: 10px;
+            margin: 20px 0;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Loading state */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+    </style>
+
+    
+
+</head>
+<body>
+    <form id="feedbackForm" action="#" >
+        <h2>Feedback Form</h2>
+        
+        <!-- Message container for success/error messages -->
+        <div id="messageContainer"></div>
+
+        <table>
+            <tr>
+                <td><label for="name">Name: <span style="color: red;">*</span></label></td>
+                <td><input type="text" id="name" name="name" required></td>
+            </tr>
+            <tr>
+                <td><label for="sid">SID: <span style="color: red;">*</span></label></td>
+                <td><input type="text" id="sid" name="sid" required></td>
+            </tr>
+            <tr>
+                <td><label for="email">Email: <span style="color: red;">*</span></label></td>
+                <td><input type="email" id="email" name="email" required></td>
+            </tr>
+            <tr>
+                <td><label for="course">Course: <span style="color: red;">*</span></label></td>
+                <td>
+                    <select name="course" id="course" required>
+                        <option value="">Select a course</option>
+                        <option value="LFP">Logical and functional program.</option>
+                        <option value="Wdev">Web development</option>
+                        <option value="CA">Computer Architecture</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="Rating">Rating: <span style="color: red;">*</span></label></td>
+                <td id="rating-container">
+                    <input type="hidden" id="rating" name="rating" value="0" required>
+                    <span class="fa fa-star" data-rating="1"></span>
+                    <span class="fa fa-star" data-rating="2"></span>
+                    <span class="fa fa-star" data-rating="3"></span>
+                    <span class="fa fa-star" data-rating="4"></span>
+                    <span class="fa fa-star" data-rating="5"></span>
+                </td>
+            </tr>
+            <tr>
+                <td><label for="Sugges">Suggestion: </label></td>
+                <td><textarea name="suggestion" id="Sugges" placeholder="Write your suggestion..."></textarea></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: center;">
+                    <button type="submit" id="submitBtn">Submit</button>
+                    <button type="reset" id="resetBtn">Clear</button>
+                </td>
+            </tr>
+        </table>
+    </form>
+</body>
+<script>
+    // Rating system variables
+    let currentRating = 0;
+    let hoveredRating = 0;
+
+    // Get all stars
+    const stars = document.querySelectorAll('.fa-star');
+    const ratingInput = document.getElementById('rating');
+    const form = document.getElementById('feedbackForm');
+    const messageContainer = document.getElementById('messageContainer');
+
+    // Initialize rating system
+    function initializeRating() {
+        stars.forEach((star, index) => {
+            const rating = index + 1;
+            
+            // Click event - set permanent rating
+            star.addEventListener('click', () => {
+                currentRating = rating;
+                ratingInput.value = rating;
+                updateStars(rating);
+            });
+
+            // Hover events
+            star.addEventListener('mouseenter', () => {
+                hoveredRating = rating;
+                updateStars(rating);
+            });
+        });
+
+        // Reset to current rating when mouse leaves container
+        const ratingContainer = document.getElementById('rating-container');
+        ratingContainer.addEventListener('mouseleave', () => {
+            hoveredRating = 0;
+            updateStars(currentRating);
+        });
+    }
+
+    // Update star display
+    function updateStars(rating) {
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('checked');
+            } else {
+                star.classList.remove('checked');
+            }
+        });
+    }
+
+    // Show message to user
+    function showMessage(message, type) {
+        messageContainer.innerHTML = `<div class="message ${type}">${message}</div>`;
+        setTimeout(() => {
+            messageContainer.innerHTML = '';
+        }, 5000);
+    }
+
+    // Form submission handler
+    function handleFormSubmit(event) {
+        event.preventDefault();
+        
+        // Validate rating
+        if (currentRating === 0) {
+            showMessage('Please select a rating!', 'error');
+            return;
+        }
+
+        // Get form data
+        const formData = new FormData(form);
+        const data = {
+            name: formData.get('name'),
+            sid: formData.get('sid'),
+            email: formData.get('email'),
+            course: formData.get('course'),
+            rating: currentRating,
+            suggestion: formData.get('suggestion')
+        };
+
+        // Show loading state
+        const submitBtn = document.getElementById('submitBtn');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Submitting...';
+        submitBtn.disabled = true;
+        form.classList.add('loading');
+
+        // Submit data to server
+        fetch('/submit-feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showMessage(result.message, 'success');
+                if (result.action === 'created') {
+                    form.reset();
+                    currentRating = 0;
+                    updateStars(0);
+                    ratingInput.value = '0';
+                }
+            } else {
+                showMessage(result.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('Failed to submit feedback. Please try again.', 'error');
+        })
+        .finally(() => {
+            // Reset loading state
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            form.classList.remove('loading');
+        });
+    }
+
+    // Form reset handler
+    function handleFormReset() {
+        currentRating = 0;
+        hoveredRating = 0;
+        updateStars(0);
+        ratingInput.value = '0';
+        messageContainer.innerHTML = '';
+    }
+
+    // Auto-fill form if user exists
+    function checkExistingUser() {
+        const sidInput = document.getElementById('sid');
+        const emailInput = document.getElementById('email');
+
+        function checkUser(identifier, field) {
+            if (identifier && identifier.length > 3) {
+                fetch(`/check-user/${encodeURIComponent(identifier)}`)
+                .then(response => response.json())
+                .then(result => {
+                    if (result.exists && result.user) {
+                        const user = result.user;
+                        document.getElementById('name').value = user.name;
+                        document.getElementById('sid').value = user.sid;
+                        document.getElementById('email').value = user.email;
+                        document.getElementById('course').value = user.course;
+                        document.getElementById('Sugges').value = user.suggestion;
+                        
+                        currentRating = user.rating;
+                        ratingInput.value = user.rating;
+                        updateStars(user.rating);
+                        
+                        showMessage('Existing feedback found! You can update your feedback.', 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking user:', error);
+                });
+            }
+        }
+
+        sidInput.addEventListener('blur', () => checkUser(sidInput.value, 'sid'));
+        emailInput.addEventListener('blur', () => checkUser(emailInput.value, 'email'));
+    }
+
+    // Initialize everything when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeRating();
+        checkExistingUser();
+        
+        // Add event listeners
+        form.addEventListener('submit', handleFormSubmit);
+        form.addEventListener('reset', handleFormReset);
+    });
+</script>
+</html>
